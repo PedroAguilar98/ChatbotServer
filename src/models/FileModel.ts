@@ -21,4 +21,8 @@ export const FileModel = sequelize.define('files', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    stored_name:{
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
 },{timestamps:false})
