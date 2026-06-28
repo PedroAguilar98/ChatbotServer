@@ -32,4 +32,8 @@ export class EmbeddingService {
         )
     }
 
+    async deleteEmbedding(id:number){
+        return this.embeddingRepository.delete(id)
+    }
+
 }

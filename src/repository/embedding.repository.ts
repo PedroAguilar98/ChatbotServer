@@ -30,4 +30,8 @@ export class EmbeddingRepository {
         return results
     }
 
+    async delete(file_id:number){
+        return await EmbeddingModel.destroy({where:{file_id}})
+    }
+
 }

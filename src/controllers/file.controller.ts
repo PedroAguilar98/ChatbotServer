@@ -29,4 +29,19 @@ export class FileController {
 
     }
 
+    async deleteFile(req: Request, res: Response){
+        try{
+            const fileService = new FileService()
+            const {id} = req.params
+            console.log("id",id)
+            await  fileService.deleteFile(Number(id))
+            return res.json({ok:true});
+        } catch(err){
+            return res.json({
+                ok:false,
+                msg:err
+            });
+        }
+    }
+
 }

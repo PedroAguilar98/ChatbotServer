@@ -39,11 +39,11 @@ export class FileService {
     constructor(
         private chunkService: ChunkService = new ChunkService(),
         private embeddingService: EmbeddingService = new EmbeddingService(),
+        private fileRepository = new FileRepository(),
     ) {}
 
     async create(file: Express.Multer.File){
-        const file_repository = new FileRepository()
-        const fileCreated = await file_repository.create({
+        const fileCreated = await this.fileRepository.create({
             name:file.originalname,
             mime_type:file.mimetype,
             tenant_id:1,
@@ -80,6 +80,11 @@ export class FileService {
         }
         if(props.mimeType === 'text/markdown'){
         }
+    }
+
+    async deleteFile(id:number){
+        await this.embeddingService.deleteEmbedding(id)
+        await this.fileRepository.delete(id)
     }
 
 }

@@ -11,5 +11,10 @@ router.post(
     upload.single("file"),
     controller.addFile
 );
+
+router.delete(
+    "/:id",
+    controller.deleteFile
+);
     
 export default router;
