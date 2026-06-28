@@ -4,13 +4,28 @@ import { FileService } from "../services/file.service";
 export class FileController {
 
     async addFile(req: Request, res: Response) {
-        const fileService = new FileService()
-        if(req.file){
-            await fileService.create(req.file)
-        }
-        const response = {};
+        try{
+            const fileService = new FileService()
+            if(req.file){
+                await fileService.create(req.file)
+            } else {
+                return res.json({
+                    ok:false,
+                    msg:'Hubo un problema al importar el archivo'
+                });
+            }
+            const response = {
+                ok:true, msg:'Archivo subido correctamente'
+            };
 
-        return res.json(response);
+            return res.json(response);
+        } catch(err){
+            return res.json({
+                ok:false,
+                msg:err
+            });
+        }
+        
 
     }
 

@@ -42,26 +42,22 @@ export class FileService {
     ) {}
 
     async create(file: Express.Multer.File){
-        try{
-            const file_repository = new FileRepository()
-            const fileCreated = await file_repository.create({
-                name:file.originalname,
-                mime_type:file.mimetype,
-                tenant_id:1,
-                stored_name:file.filename
-            })
-            const textToEmbed = await this.parseFile({filePath:file.path, mimeType:file.mimetype});
-            const chunks = this.chunkService.split(textToEmbed ?? '')
-            
-            //concurrencia controlada
-            const concurrency = 5;
+        const file_repository = new FileRepository()
+        const fileCreated = await file_repository.create({
+            name:file.originalname,
+            mime_type:file.mimetype,
+            tenant_id:1,
+            stored_name:file.filename
+        })
+        const textToEmbed = await this.parseFile({filePath:file.path, mimeType:file.mimetype});
+        const chunks = this.chunkService.split(textToEmbed ?? '')
+        
+        //concurrencia controlada
+        const concurrency = 5;
 
-            for (let i = 0; i < chunks.length; i += concurrency) {
-                const batch = chunks.slice(i, i + concurrency);
-                this.embeddingService.create(batch, fileCreated.id)
-            }
-        }catch(err){
-            console.log("errorr", err)
+        for (let i = 0; i < chunks.length; i += concurrency) {
+            const batch = chunks.slice(i, i + concurrency);
+            this.embeddingService.create(batch, fileCreated.id)
         }
         
     }
