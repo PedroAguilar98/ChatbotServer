@@ -3,24 +3,37 @@ import cors from "cors";
 
 import fileRoutes from "./routes/file.routes";
 import { noCacheMiddleware } from "./middleware/noCache.middleware";
+import { EmbeddingModelService } from "./services/embeddingModel.service";
 
 const app = express();
 
-app.use(express.json());
+export const embeddingModelService = EmbeddingModelService.getInstance()
 
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-}));
+async function main() {
+    app.use(express.json());
 
-app.use(noCacheMiddleware);
+    app.use(cors({
+        origin: "*",
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true
+    }));
 
-app.use("/files", fileRoutes);
+    app.use(noCacheMiddleware);
 
-const port = 3000;
+    app.use("/files", fileRoutes);
 
-app.listen(port, () => {
-    console.log(`Servidor corriendo en puerto ${port}`);
+    
+    await embeddingModelService.initialize();
+
+    const port = 3000;
+
+    app.listen(port, () => {
+        console.log(`Servidor corriendo en puerto ${port}`);
+    });
+}
+
+main().catch(err => {
+    console.error(err);
+    process.exit(1);
 });
