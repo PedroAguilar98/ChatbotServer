@@ -1,9 +1,12 @@
+
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
 import fileRoutes from "./routes/file.routes";
 import { noCacheMiddleware } from "./middleware/noCache.middleware";
 import { EmbeddingModelService } from "./services/embeddingModel.service";
+import chatRoutes from "./routes/chat.routes";
 
 const app = express();
 
@@ -22,6 +25,8 @@ async function main() {
     app.use(noCacheMiddleware);
 
     app.use("/files", fileRoutes);
+
+    app.use("/chat", chatRoutes);
 
     
     await embeddingModelService.initialize();

@@ -3,9 +3,9 @@ import { Chunk } from "../interfaces/ChunkInterface";
 import { EmbeddingRepository } from "../repository/embedding.repository";
 
 export class EmbeddingService {
-
+    private embeddingRepository = new EmbeddingRepository();
     async create(chunks:Chunk[], file_id:number){
-        const embeddingRepository = new EmbeddingRepository()
+        
         const rows = await Promise.all(
             chunks.map(async (chunk) => {
 
@@ -22,7 +22,14 @@ export class EmbeddingService {
 
             })
         )
-        await embeddingRepository.bulkCreate(rows);
+        await this.embeddingRepository.bulkCreate(rows);
+    }
+
+    async getPerTenant(tenant_id:number, questionEmbedded:number[]){
+        return this.embeddingRepository.getEmbeddingsPerClient(
+            tenant_id,
+            questionEmbedded,
+        )
     }
 
 }

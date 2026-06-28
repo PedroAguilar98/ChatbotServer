@@ -2,7 +2,7 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import { sequelize } from "../db";
 import { FileModel } from "./FileModel";
 
-interface EmbeddingAttributes {
+export interface EmbeddingAttributes {
     id: number;
     file_id: number;
     chunk_index: number;
