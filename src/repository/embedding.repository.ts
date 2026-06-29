@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
 import { sequelize } from "../db";
 import { EmbeddingAttributes, EmbeddingCreationAttributes, EmbeddingModel } from "../models/EmbeddingModel";
-import { FileModel } from "../models/FileModel";
+import { FileAttributes, FileModel } from "../models/FileModel";
 
 export class EmbeddingRepository {
 
@@ -12,9 +12,10 @@ export class EmbeddingRepository {
     }
 
     async getEmbeddingsPerClient(tenant_id:number, queryEmbedded:number[], limit = 5){
-        const results:EmbeddingAttributes[] = await sequelize.query(
+        const results:(EmbeddingAttributes & FileAttributes) [] = await sequelize.query(
             `SELECT 
                 e.fragment,
+                f.name,
                 e.embedding <=> CAST(:embedding AS vector) AS distance
             FROM embeddings e
             INNER JOIN 
