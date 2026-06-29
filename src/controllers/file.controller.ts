@@ -33,7 +33,6 @@ export class FileController {
         try{
             const fileService = new FileService()
             const {id} = req.params
-            console.log("id",id)
             await  fileService.deleteFile(Number(id))
             return res.json({ok:true});
         } catch(err){
@@ -41,6 +40,22 @@ export class FileController {
                 ok:false,
                 msg:err
             });
+        }
+    }
+
+    async getFiles(req: Request, res: Response){
+        try{
+            const {tenant_id} = req.params
+            const fileService = new FileService()
+            const files =  await fileService.getFiles(Number(tenant_id))
+            return res.json({
+                ok:true,
+                files
+            })
+        }catch{
+            return res.json({
+                ok:false
+            })
         }
     }
 

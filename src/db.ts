@@ -2,9 +2,9 @@ import { Sequelize } from 'sequelize';
 
 
   export const sequelize = new Sequelize('neondb', 'neondb_owner', 'npg_3txTZMuzU5GJ', {
-    host: 'ep-misty-union-ac7r0jeh-pooler.sa-east-1.aws.neon.tech',
+    host: process.env.NEON_HOST || '',
     dialect: 'postgres',
-    port: 5432,
+    port: Number(process.env.NEON_PORT) || 0 ,
     dialectOptions: {
       ssl: {
         require: true,

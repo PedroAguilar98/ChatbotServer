@@ -16,5 +16,10 @@ router.delete(
     "/:id",
     controller.deleteFile
 );
+
+router.get(
+    "/byTenant/:tenant_id",
+    controller.getFiles
+);
     
 export default router;

@@ -1,8 +1,7 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from "sequelize";
+import { CreationOptional, DataTypes, Model } from "sequelize";
 import { sequelize } from "../db";
-import { EmbeddingModel } from "./EmbeddingModel";
 
-interface FileAttributes {
+export interface FileAttributes {
     id: number;
     name: string;
     tenant_id: number;

@@ -5,6 +5,7 @@ import mammoth from 'mammoth'
 import fs from 'fs'
 import { ChunkService } from "./chunk.service";
 import { EmbeddingService } from "./embedding.service";
+import { unlinkFile } from "../utils/unlinkFile";
 
 const parsePDF = async (filePath:string) =>{
     const buffer = await readFile(filePath);
@@ -83,8 +84,18 @@ export class FileService {
     }
 
     async deleteFile(id:number){
+        const fileToDelete = await this.fileRepository.getOne(id)
+        await unlinkFile(fileToDelete?.stored_name)
         await this.embeddingService.deleteEmbedding(id)
         await this.fileRepository.delete(id)
+
+    }
+
+    async getFiles(tenant_id:number){
+        return await this.fileRepository.getMany(
+            ['id', 'name', 'mime_type'],
+            {tenant_id}
+        )
     }
 
 }
