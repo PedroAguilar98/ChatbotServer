@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { embeddingModelService } from "..";
 import { EmbeddingService } from "./embedding.service";
+import { Response } from "express";
 
 
 export class LLMService{
@@ -15,7 +16,7 @@ export class LLMService{
     }
 
 
-    async ask(tenantId:number,question: string, previousQuestion:string[] = []) {
+    async ask(tenantId:number,question: string, res:Response, previousQuestion:string[] = []) {
         const embeddedQuestion = await embeddingModelService.embed(question)
         const results = await this.embeddingService.getPerTenant(tenantId, embeddedQuestion)
         const context = `
@@ -28,12 +29,27 @@ export class LLMService{
         `
         const response = await this.client.chat.completions.create({ //await ollama.chat({
             model: "llama-3.1-8b-instant",//"mistral",
+            stream: true,
             messages: [
                 { role: "system", content: "Eres un asistente que responde con base en documentos recuperados." },
                 { role: "user", content: `Contexto:\n${context}\n\nPregunta: ${question}\nRespuesta:` }
             ]
         });
-        return response.choices[0]?.message.content;
+
+        res.setHeader("Content-Type", "text/plain");
+        res.setHeader("Transfer-Encoding", "chunked");
+        res.setHeader("Cache-Control", "no-cache");
+
+        for await (const chunk of response) {
+
+            const token = chunk.choices[0]?.delta?.content;
+
+            if (token) {
+                res.write(token);
+            }
+
+        }
+        res.end()
     }
 }
 

@@ -5,11 +5,7 @@ export class ChatController {
     async promptQuestion(req: Request, res: Response){
         try{
             const body = req.body
-            const answer = await llmService.ask(body.tenantId, body.question)
-            return res.json({
-                ok:true,
-                answer
-            });
+            await llmService.ask(body.tenantId, body.question, res)
         }catch(error){
             return res.json({
                 ok:false,
