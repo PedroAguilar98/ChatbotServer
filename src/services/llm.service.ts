@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { embeddingModelService } from "..";
 import { EmbeddingService } from "./embedding.service";
 import { Response } from "express";
-
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export class LLMService{
     private client: OpenAI;
@@ -16,20 +16,20 @@ export class LLMService{
     }
 
 
-    async ask(tenantId:number,question: string, res:Response, previousQuestion:string[] = []) {
+    async ask(tenantId:number,question: string, res:Response, previousQuestions:{question:string, answer:string}[] = []) {
+
         const embeddedQuestion = await embeddingModelService.embed(question)
         const results = await this.embeddingService.getPerTenant(tenantId, embeddedQuestion)
-        const context = `
-
-            Fragmentos relevantes:
-            ${results.map(r => r.fragment).join("\n\n")}
-
-            Títulos de los textos de los fragmentos relevantes:
-            ${results.map(r => r.name).join("\n\n")}
-
-            Preguntas anteriores:
-            ${previousQuestion.map(p => p).join("\n\n")}
-        `
+        const prevChat:ChatCompletionMessageParam[] = previousQuestions.flatMap(p => [
+                    {
+                        role: "user",
+                        content: p.question,
+                    },
+                    {
+                        role: "assistant",
+                        content: p.answer,
+                    }
+                ])
         const response = await this.client.chat.completions.create({ //await ollama.chat({
             model: "llama-3.1-8b-instant",//"mistral",
             stream: true,
@@ -50,14 +50,29 @@ export class LLMService{
                         - No menciones que recibiste un contexto.
                         - No cites texto literalmente salvo que sea necesario.
                         - Mantén un tono profesional.
+                        Formatea las respuestas utilizando Markdown.
+                        - Usa listas cuando sea conveniente.
+                        - Usa tablas cuando ayuden a explicar información.
+                        - Usa encabezados para organizar respuestas largas.
+                        - Usa negrita para destacar conceptos importantes.
+                        - No incluyas bloques de Markdown innecesarios.
                                 `
+                },
+                ...prevChat,
+                {
+                    role: "system",
+                    content: `
+                        Fragmentos relevantes:
+
+                        ${results.map(r => r.fragment).join("\n\n")}
+
+                        Títulos de los textos de los fragmentos relevantes:
+                        ${results.map(r => r.name).join("\n\n")}
+                    `
                 },
                 {
                     role: "user",
                     content: `
-                        Contexto:
-
-                        ${context}
 
                         Pregunta:
 
@@ -76,7 +91,7 @@ export class LLMService{
             const token = chunk.choices[0]?.delta?.content;
 
             if (token) {
-                res.write(token);
+                res.write(token)
             }
 
         }
