@@ -2,6 +2,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
 
 import fileRoutes from "./routes/file.routes";
 import { noCacheMiddleware } from "./middleware/noCache.middleware";
@@ -27,6 +28,11 @@ async function main() {
     app.use("/files", fileRoutes);
 
     app.use("/chat", chatRoutes);
+
+    app.use(
+        "/uploads",
+        express.static(path.join(__dirname, "../uploads"))
+    );
 
     
     await embeddingModelService.initialize();

@@ -3,9 +3,13 @@ import { readFile } from "node:fs/promises";
 import { PDFParse } from "pdf-parse";
 import mammoth from 'mammoth'
 import fs from 'fs'
+import * as fsPromise from "fs/promises";
+import { parse } from "csv-parse/sync";
 import { ChunkService } from "./chunk.service";
 import { EmbeddingService } from "./embedding.service";
 import { unlinkFile } from "../utils/unlinkFile";
+import XLSX from "xlsx";
+import { load } from "cheerio";
 
 const parsePDF = async (filePath:string) =>{
     const buffer = await readFile(filePath);
@@ -34,6 +38,54 @@ const parseTXT = (filePath:string) =>{
     );
     return text
 }
+
+const parseCSV = async (filePath: string) => {
+    const content = await fsPromise.readFile(filePath, "utf8");
+
+    const records = parse(content, {
+        columns: true,
+        skip_empty_lines: true,
+    });
+
+    return records
+        .map((row:any) =>
+            Object.entries(row)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(", ")
+        )
+        .join("\n");
+};
+
+const parseExcel = async (filePath: string) => {
+    const workbook = XLSX.readFile(filePath);
+
+    let text = "";
+
+    workbook.SheetNames.forEach(sheetName => {
+        const sheet = workbook.Sheets[sheetName];
+
+        if(!sheet)
+            return ''
+
+        text += `\n--- ${sheetName} ---\n`;
+
+        text += XLSX.utils.sheet_to_csv(sheet);
+    });
+
+    return text;
+};
+
+const parseHTML = async (filePath: string) => {
+    const html = await fsPromise.readFile(filePath, "utf8");
+
+    const $ = load(html);
+
+    return $("body").text().replace(/\s+/g, " ").trim();
+};
+
+const parseMarkdown = async (filePath: string) => {
+    return await fsPromise.readFile(filePath, "utf8");
+};
 
 export class FileService {
 
@@ -68,18 +120,22 @@ export class FileService {
             return parsePDF(props.filePath)
         }
         if(props.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
-            return parseDOCX(props.filePath)
+            return await parseDOCX(props.filePath)
         }
         if(props.mimeType === 'text/plain'){
             return parseTXT(props.filePath)
         }
         if(props.mimeType === 'text/csv'){
+            return await parseCSV(props.filePath)
         }
         if(props.mimeType === 'text/html'){
+            return await parseHTML(props.filePath)
         }
         if(props.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+            return await parseExcel(props.filePath)
         }
         if(props.mimeType === 'text/markdown'){
+            return await parseMarkdown(props.filePath)
         }
     }
 
@@ -93,7 +149,7 @@ export class FileService {
 
     async getFiles(tenant_id:number){
         return await this.fileRepository.getMany(
-            ['id', 'name', 'mime_type'],
+            ['id', 'name', 'mime_type', 'stored_name'],
             {tenant_id}
         )
     }
