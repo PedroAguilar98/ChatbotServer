@@ -7,11 +7,13 @@ import path from "path";
 import fileRoutes from "./routes/file.routes";
 import { noCacheMiddleware } from "./middleware/noCache.middleware";
 import { EmbeddingModelService } from "./services/embeddingModel.service";
+import { OCRService } from "./services/ocr.service";
 import chatRoutes from "./routes/chat.routes";
 
 const app = express();
 
 export const embeddingModelService = EmbeddingModelService.getInstance()
+export const ocrService = OCRService.getInstance()
 
 async function main() {
     app.use(express.json());
@@ -36,6 +38,7 @@ async function main() {
 
     
     await embeddingModelService.initialize();
+    await ocrService.initialize();
 
     const port = 3000;
 
